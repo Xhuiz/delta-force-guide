@@ -5,12 +5,14 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 interface MapViewProps {
-  tileUrl: string;
+  tileUrl?: string;
   bounds?: [[number, number], [number, number]];
+  center?: [number, number];
+  zoom?: number;
   onBoundsChange?: (bbox: string, zoom: number) => void;
 }
 
-export default function MapView({ tileUrl, bounds, onBoundsChange }: MapViewProps) {
+export default function MapView({ tileUrl, bounds, center = [35, 105], zoom = 4, onBoundsChange }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
 
@@ -18,16 +20,22 @@ export default function MapView({ tileUrl, bounds, onBoundsChange }: MapViewProp
     if (!mapRef.current || mapInstanceRef.current) return;
 
     const map = L.map(mapRef.current, {
-      crs: L.CRS.Simple,
       zoomControl: false,
       attributionControl: false,
     });
 
-    if (bounds) {
+    if (tileUrl && bounds) {
+      // Game map mode: image overlay with CRS.Simple
+      map.options.crs = L.CRS.Simple;
       L.imageOverlay(tileUrl, bounds).addTo(map);
       map.fitBounds(bounds);
     } else {
-      L.tileLayer(tileUrl, { maxZoom: 5 }).addTo(map);
+      // Standard map mode: OpenStreetMap tiles
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+      }).addTo(map);
+      map.setView(center, zoom);
     }
 
     L.control.zoom({ position: "bottomright" }).addTo(map);
@@ -35,8 +43,8 @@ export default function MapView({ tileUrl, bounds, onBoundsChange }: MapViewProp
     map.on("moveend", () => {
       if (onBoundsChange) {
         const b = map.getBounds();
-        const zoom = map.getZoom();
-        onBoundsChange(`${b.getWest()},${b.getSouth()},${b.getEast()},${b.getNorth()}`, zoom);
+        const z = map.getZoom();
+        onBoundsChange(`${b.getWest()},${b.getSouth()},${b.getEast()},${b.getNorth()}`, z);
       }
     });
 
@@ -46,7 +54,7 @@ export default function MapView({ tileUrl, bounds, onBoundsChange }: MapViewProp
       map.remove();
       mapInstanceRef.current = null;
     };
-  }, [tileUrl, bounds]);
+  }, [tileUrl, bounds, center, zoom]);
 
   return <div ref={mapRef} className="w-full h-full" style={{ minHeight: "400px" }} />;
 }
