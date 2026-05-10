@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.auth.router import router as auth_router
 from app.map.router import router as map_router
+from app.guide.router import router as guide_router
+from app.comment.router import router as comment_router
 
 app = FastAPI(title="Delta Force Map Guide API", version="0.1.0")
 
@@ -17,6 +19,8 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(map_router)
+app.include_router(guide_router)
+app.include_router(comment_router)
 
 
 @app.get("/api/health")
