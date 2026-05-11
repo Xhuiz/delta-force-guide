@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { useLoadoutStore } from "@/stores/loadoutStore";
 import StatBar from "@/components/loadout/StatBar";
 import AttachmentSlot from "@/components/loadout/AttachmentSlot";
@@ -74,7 +75,7 @@ const DEMO_WEAPONS: any[] = [
   },
 ];
 
-export default function LoadoutPage() {
+function LoadoutContent() {
   const {
     weapons,
     selectedWeaponId,
@@ -88,6 +89,7 @@ export default function LoadoutPage() {
 
   const [isMobile, setIsMobile] = useState(false);
   const [useDemo, setUseDemo] = useState(false);
+  const searchParams = useSearchParams();
 
   // Load weapons
   useEffect(() => {
@@ -96,7 +98,24 @@ export default function LoadoutPage() {
       .then((data) => {
         if (data.length > 0) {
           setWeapons(data);
-          selectWeapon(data[0].id);
+          // Restore from URL params if present
+          const wParam = searchParams.get("w");
+          if (wParam && data.find((w: any) => w.id === wParam)) {
+            selectWeapon(wParam);
+            setTimeout(() => {
+              const weapon = data.find((w: any) => w.id === wParam);
+              if (weapon) {
+                weapon.slots.forEach((slot: string) => {
+                  const attId = searchParams.get(slot);
+                  if (attId && weapon.attachments.find((a: any) => a.id === attId)) {
+                    setAttachment(slot, attId);
+                  }
+                });
+              }
+            }, 0);
+          } else {
+            selectWeapon(data[0].id);
+          }
         } else {
           throw new Error("empty");
         }
@@ -209,5 +228,13 @@ export default function LoadoutPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function LoadoutPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-12 text-gray-400">加载中...</div>}>
+      <LoadoutContent />
+    </Suspense>
   );
 }
