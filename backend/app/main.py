@@ -9,6 +9,7 @@ from app.comment.router import router as comment_router
 from app.weapon.router import router as weapon_router
 from app.user.router import router as user_router
 from app.admin.router import router as admin_router
+from app.tag.router import router as tag_router
 
 app = FastAPI(title="Delta Force Map Guide API", version="0.1.0")
 
@@ -27,6 +28,7 @@ app.include_router(comment_router)
 app.include_router(weapon_router)
 app.include_router(user_router)
 app.include_router(admin_router)
+app.include_router(tag_router)
 
 
 @app.get("/api/health")

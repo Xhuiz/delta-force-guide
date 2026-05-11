@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Any
 
 
 class MapResponse(BaseModel):
@@ -8,7 +9,7 @@ class MapResponse(BaseModel):
     slug: str
     description: str | None
     tile_url: str | None
-    bounds: dict | None
+    bounds: Any | None
 
     class Config:
         from_attributes = True

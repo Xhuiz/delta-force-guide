@@ -1,5 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, JSON, func, TIMESTAMP
-from geoalchemy2 import Geometry
+from sqlalchemy import Column, Integer, String, Text, JSON, Float, func, TIMESTAMP
 from app.models.base import Base
 
 
@@ -23,7 +22,8 @@ class MapPoint(Base):
     name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
     category = Column(String(20), nullable=False, index=True)
-    geometry = Column(Geometry("POINT", srid=4326), nullable=False)
+    lng = Column(Float, nullable=False)
+    lat = Column(Float, nullable=False)
     image_url = Column(String(500), nullable=True)
     tags = Column(JSON, nullable=True)
     created_at = Column(TIMESTAMP, server_default=func.now())

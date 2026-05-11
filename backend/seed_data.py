@@ -331,7 +331,6 @@ async def seed():
         print(f"Created {len(MAPS)} maps")
 
         # Create map points
-        from geoalchemy2.elements import WKTElement
         for p in MAP_POINTS:
             slug = p["map_slug"]
             map_id = map_slug_to_id.get(slug)
@@ -342,7 +341,8 @@ async def seed():
                 name=p["name"],
                 description=p["desc"],
                 category=p["cat"],
-                geometry=WKTElement(f"POINT({p['lng']} {p['lat']})", srid=4326),
+                lng=p["lng"],
+                lat=p["lat"],
             )
             db.add(point)
         await db.flush()
