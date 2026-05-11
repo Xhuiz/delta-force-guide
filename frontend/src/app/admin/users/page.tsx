@@ -18,11 +18,11 @@ export default function AdminUsersPage() {
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     fetch(`${API_BASE}/api/admin/users`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.length > 0) setUsers(data);
-        else throw new Error("empty");
+      .then((r) => {
+        if (!r.ok) throw new Error("API error");
+        return r.json();
       })
+      .then((data) => setUsers(data))
       .catch(() => { setUseDemo(true); setUsers(DEMO_USERS); })
       .finally(() => setLoading(false));
   }, []);

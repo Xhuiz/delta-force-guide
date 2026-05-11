@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import L from "leaflet";
 import { fetchMaps, fetchMapPoints } from "@/lib/api";
 import { useMapStore } from "@/stores/mapStore";
+import type { MapMarker } from "@/components/map/MapView";
 
 const MapView = dynamic(() => import("@/components/map/MapView"), { ssr: false });
 
@@ -15,7 +15,7 @@ const DEMO_MAPS = [
   { id: 3, name: "港口", slug: "harbor", description: "港口开阔地图", tile_url: null, bounds: null },
 ];
 
-const DEMO_POINTS: Record<number, any[]> = {
+const DEMO_POINTS: Record<number, MapMarker[]> = {
   1: [
     { id: 1, name: "A点出生区", category: "spawn", lat: 39.92, lng: 116.40, description: "进攻方出生点" },
     { id: 2, name: "武器库", category: "resource", lat: 39.93, lng: 116.41, description: "高级装备" },
@@ -55,12 +55,10 @@ const CATEGORY_LABELS: Record<string, string> = {
 export default function MapPage() {
   const [maps, setMaps] = useState<any[]>([]);
   const [selectedMap, setSelectedMap] = useState<any>(null);
-  const [points, setPoints] = useState<any[]>([]);
+  const [points, setPoints] = useState<MapMarker[]>([]);
   const [useDemo, setUseDemo] = useState(false);
-  const [selectedPoint, setSelectedPoint] = useState<any>(null);
+  const [selectedPoint, setSelectedPoint] = useState<MapMarker | null>(null);
   const { activeCategories, toggleCategory } = useMapStore();
-  const mapRef = useRef<L.Map | null>(null);
-  const markersRef = useRef<L.CircleMarker[]>([]);
 
   // Load maps
   useEffect(() => {
@@ -88,7 +86,7 @@ export default function MapPage() {
     } else {
       fetchMapPoints(selectedMap.id)
         .then((data) => {
-          const pts = (data.features || []).map((f: any) => ({
+          const pts: MapMarker[] = (data.features || []).map((f: any) => ({
             id: f.properties.id,
             name: f.properties.name,
             category: f.properties.category,
@@ -105,15 +103,8 @@ export default function MapPage() {
     }
   }, [selectedMap, useDemo]);
 
-  // Update markers on map
-  useEffect(() => {
-    // We access the map instance via the MapView component
-    // For now, we'll use a different approach - render markers as part of the page
-  }, [points, activeCategories]);
-
   const filteredPoints = points.filter((p) => activeCategories.includes(p.category));
 
-  // Calculate center of filtered points
   const center: [number, number] = filteredPoints.length > 0
     ? [
         filteredPoints.reduce((s, p) => s + p.lat, 0) / filteredPoints.length,
@@ -188,10 +179,16 @@ export default function MapPage() {
 
       {/* Map area */}
       <div className="flex-1 relative">
-        <MapView center={center} zoom={12} />
-
-        {/* Markers overlay - rendered as positioned divs */}
-        {/* This is a simplified approach; in production you'd use react-leaflet */}
+        <MapView
+          center={center}
+          zoom={12}
+          markers={filteredPoints}
+          selectedMarkerId={selectedPoint?.id ?? null}
+          onMarkerClick={(id) => {
+            const pt = filteredPoints.find((p) => p.id === id);
+            if (pt) setSelectedPoint(pt);
+          }}
+        />
 
         {/* Mobile filter bar */}
         <div className="md:hidden absolute top-2 left-2 right-2 z-[1000] flex gap-2 overflow-x-auto">
@@ -223,10 +220,6 @@ export default function MapPage() {
                 <p className="text-sm text-gray-600 mt-1">{selectedPoint.description}</p>
               </div>
               <button onClick={() => setSelectedPoint(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
-            </div>
-            <div className="flex gap-2 mt-3">
-              <button className="flex-1 py-1.5 bg-blue-500 text-white rounded text-sm">收藏</button>
-              <button className="flex-1 py-1.5 border border-gray-300 rounded text-sm">评论</button>
             </div>
           </div>
         )}

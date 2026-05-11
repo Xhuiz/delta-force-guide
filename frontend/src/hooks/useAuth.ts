@@ -10,7 +10,8 @@ export function useRequireAuth() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/login");
+      const callback = encodeURIComponent(window.location.pathname);
+      router.push(`/login?callback=${callback}`);
     }
   }, [user, loading, router]);
 

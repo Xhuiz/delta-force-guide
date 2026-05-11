@@ -28,11 +28,13 @@ export default function ProfilePage() {
       fetch(`${API_BASE}/api/users/me/favorites?target_type=guide`, { headers })
         .then((r) => r.json())
         .then((data) => setFavorites(data.items || []))
+        .catch(() => setFavorites([]))
         .finally(() => setLoading(false));
     } else {
       fetch(`${API_BASE}/api/users/me/comments`, { headers })
         .then((r) => r.json())
         .then((data) => setComments(data.items || []))
+        .catch(() => setComments([]))
         .finally(() => setLoading(false));
     }
   }, [user, activeTab]);

@@ -22,9 +22,9 @@ export default function AdminCommentsPage() {
       const res = await fetch(`${API_BASE}/api/admin/comments`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (!res.ok) throw new Error("API error");
       const data = await res.json();
-      if (data.length > 0) setComments(data);
-      else throw new Error("empty");
+      setComments(data);
     } catch {
       setUseDemo(true);
       setComments(DEMO_COMMENTS);

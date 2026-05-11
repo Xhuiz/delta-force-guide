@@ -34,9 +34,9 @@ export default function AdminTagsPage() {
     try {
       const token = localStorage.getItem("access_token");
       const res = await fetch(`${API_BASE}/api/tags`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error("API error");
       const data = await res.json();
-      if (data.length > 0) setTags(data);
-      else throw new Error("empty");
+      setTags(data);
     } catch {
       setUseDemo(true);
       setTags(DEMO_TAGS);

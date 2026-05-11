@@ -49,14 +49,11 @@ export default function AdminWeaponsPage() {
         fetch(`${API_BASE}/api/weapons`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/weapons/attachments/list`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
+      if (!wRes.ok) throw new Error("API error");
       const wData = await wRes.json();
       const aData = await aRes.json();
-      if (wData.length > 0) {
-        setWeapons(wData);
-        setAttachments(aData || []);
-      } else {
-        throw new Error("empty");
-      }
+      setWeapons(wData);
+      setAttachments(aData || []);
     } catch {
       setUseDemo(true);
       setWeapons(DEMO_WEAPONS);

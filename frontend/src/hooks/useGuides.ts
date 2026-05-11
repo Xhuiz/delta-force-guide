@@ -136,7 +136,7 @@ const DEMO_CONTENT: Record<string, string> = {
 
 export function useGuides() {
   const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [guideType, setGuideType] = useState("");
   const [sort, setSort] = useState("latest");
@@ -151,13 +151,12 @@ export function useGuides() {
     params.set("page", String(page));
     params.set("page_size", "20");
     fetch(`${API_BASE}/api/guides?${params}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("API error");
+        return r.json();
+      })
       .then((d) => {
-        if (d.items && d.items.length > 0) {
-          setData(d);
-        } else {
-          throw new Error("empty");
-        }
+        setData(d);
       })
       .catch(() => {
         // Filter demo data
